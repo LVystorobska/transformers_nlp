@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+
+<form method="post" enctype="multipart/form-data" action="{{url_for('routes.text_process')}}">
+    <textarea size="100" name="text"></textarea>
+    <input size="50" name="question">
+    <input type="submit" class="button" value="Send Request">
+</form>
+
+
+{% endblock %}
