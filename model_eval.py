@@ -1,8 +1,14 @@
-from model_utils import get_answer, get_answer_roberta
+from model_utils import get_answer, get_answer_roberta, get_answer_longformer
 import json
 from pathlib import Path
 import pandas as pd
 from tqdm.auto import tqdm
+import difflib
+
+def get_overlap(s1, s2):
+    s = difflib.SequenceMatcher(None, s1, s2)
+    pos_a, pos_b, size = s.find_longest_match(0, len(s1), 0, len(s2)) 
+    return s1[pos_a:pos_a+size]
 
 def read_squad(path):
     path = Path(path)
@@ -32,12 +38,14 @@ df_validation['context'] = val_contexts
 df_validation['question'] = val_questions
 df_validation['answers'] = val_ans_text
 
-results = {'match': 0, 'count': 0}
+results = {'match': 0, 'count': 0, 'overlap': 0, 'answers_len': 0}
 
 for ind, example in tqdm(df_validation.iterrows()):
-    output = get_answer_roberta(example['context'], example['question'])
-
+    output = get_answer(example['context'], example['question'])
+    results['overlap'] += len(get_overlap(output, example['answers']))
+    results['answers_len'] += len(example['answers'])
     results['match'] += int(output in example['answers'])
     results['count'] += 1
 
 print(f"Correct examples: {results['match']}/{results['count']}")
+print(f"Overlap ratio: {results['overlap']*100/ results['answers_len']} %")
